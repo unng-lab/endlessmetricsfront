@@ -1,0 +1,17 @@
+{
+  "name": "endlessmetricsfront",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test:e2e": "playwright test --config=playwright.config.ts",
+    "e2e:remote": "powershell -ExecutionPolicy Bypass -File ..\\scripts\\e2e-remote.ps1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "vite": "^7.0.6"
+  }
+}

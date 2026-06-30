@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EndlessMetrics Test Site</title>
+    <style>
+      body { font-family: Inter, Segoe UI, Arial, sans-serif; margin: 0; color: #1f2937; background: #f5f7fb; }
+      main { max-width: 860px; margin: 40px auto; padding: 24px; }
+      button, a { margin: 6px; }
+      button { border: 1px solid #1f2937; background: #fff; border-radius: 6px; padding: 10px 14px; cursor: pointer; }
+      section { background: #fff; border: 1px solid #d7dce5; border-radius: 8px; padding: 18px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h1 id="title">Test site</h1>
+        <p id="route">/</p>
+        <button data-testid="route-home" data-route="/">Home</button>
+        <button data-testid="route-pricing" data-route="/pricing">Pricing</button>
+        <button data-testid="route-checkout" data-route="/checkout">Checkout</button>
+        <button data-testid="send-event">Send event</button>
+        <button data-testid="send-goal">Send goal</button>
+        <button data-testid="send-ecommerce">Send purchase</button>
+        <button data-testid="privacy-route">Privacy URL</button>
+      </section>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const api = params.get('api');
+      const counter = params.get('counter');
+      window.sma = window.sma || function(){(window.sma.q = window.sma.q || []).push(arguments)};
+      if (api && counter) {
+        sma('init', {
+          counterId: counter,
+          endpoint: api.replace(/\/$/, '') + '/collect',
+          trackSpa: true,
+          respectDoNotTrack: false,
+          consentRequired: false
+        });
+        sma('pageview');
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = api.replace(/\/$/, '') + '/sdk/sma.js';
+        script.onload = () => { window.__smaReady = true; };
+        document.head.appendChild(script);
+      }
+      function render(path) {
+        document.getElementById('route').textContent = path;
+        document.getElementById('title').textContent = path === '/' ? 'Home' : path.slice(1);
+      }
+      document.querySelectorAll('[data-route]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const route = button.dataset.route;
+          history.pushState({}, '', route + location.search);
+          render(route);
+        });
+      });
+      document.querySelector('[data-testid="send-event"]').addEventListener('click', () => {
+        sma('event', 'button_click', { button_id: 'buy', page: location.pathname });
+      });
+      document.querySelector('[data-testid="send-goal"]').addEventListener('click', () => {
+        sma('goal', 'lead_form_submit', { revenue: 99, currency: 'RUB' });
+      });
+      document.querySelector('[data-testid="send-ecommerce"]').addEventListener('click', () => {
+        sma('ecommerce', 'purchase', {
+          order_id: 'e2e-order',
+          revenue: 199,
+          currency: 'RUB',
+          items: [{ sku: 'sku-1', name: 'Plan', price: 199, quantity: 1 }]
+        });
+      });
+      document.querySelector('[data-testid="privacy-route"]').addEventListener('click', () => {
+        history.pushState({}, '', '/privacy?email=test@example.com&token=secret&utm_source=google&utm_medium=cpc&utm_campaign=test');
+        render('/privacy');
+        sma('pageview', { email: 'person@example.com', token: 'secret' });
+      });
+      window.addEventListener('popstate', () => render(location.pathname));
+      render(location.pathname);
+    </script>
+  </body>
+</html>
