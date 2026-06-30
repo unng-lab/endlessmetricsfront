@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test:e2e": "playwright test --config=playwright.config.ts",
+    "test:e2e:public": "playwright test --config=playwright.config.ts e2e/public.spec.ts",
+    "test:e2e:auth": "playwright test --config=playwright.config.ts e2e/authenticated.spec.ts",
     "e2e:remote": "powershell -ExecutionPolicy Bypass -File ..\\scripts\\e2e-remote.ps1"
   },
   "devDependencies": {
