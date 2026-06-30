@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:web/web.dart' as web;
 
 void main() {
   runApp(const EndlessMetricsAdmin());
@@ -37,7 +37,9 @@ class _AdminHomeState extends State<AdminHome> {
 
   final apiBaseController = TextEditingController();
   final orgNameController = TextEditingController(text: 'New organization');
-  final projectNameController = TextEditingController(text: 'New analytics project');
+  final projectNameController = TextEditingController(
+    text: 'New analytics project',
+  );
   final projectDomainController = TextEditingController(text: 'example.com');
   final goalNameController = TextEditingController(text: 'lead_form_submit');
 
@@ -64,20 +66,25 @@ class _AdminHomeState extends State<AdminHome> {
   void initState() {
     super.initState();
     final uri = Uri.base;
-    apiBase = uri.queryParameters['api'] ??
-        html.window.localStorage['em_api_base'] ??
+    apiBase =
+        uri.queryParameters['api'] ??
+        web.window.localStorage.getItem('em_api_base') ??
         defaultApiBase;
     apiBaseController.text = apiBase;
-    selectedTab = html.window.localStorage['em_tab'] ?? 'dashboard';
-    selectedOrgId = html.window.localStorage['em_org_id'] ?? '';
-    selectedProjectId = html.window.localStorage['em_project_id'] ?? '';
-    selectedCounterId = html.window.localStorage['em_counter_id'] ?? '';
+    selectedTab = web.window.localStorage.getItem('em_tab') ?? 'dashboard';
+    selectedOrgId = web.window.localStorage.getItem('em_org_id') ?? '';
+    selectedProjectId = web.window.localStorage.getItem('em_project_id') ?? '';
+    selectedCounterId = web.window.localStorage.getItem('em_counter_id') ?? '';
     token = _tokenFromFragment(uri.fragment);
     if (token.isNotEmpty) {
-      html.window.sessionStorage['em_token'] = token;
-      html.window.history.replaceState(null, 'EndlessMetrics Admin', uri.removeFragment().toString());
+      web.window.sessionStorage.setItem('em_token', token);
+      web.window.history.replaceState(
+        null,
+        'EndlessMetrics Admin',
+        uri.removeFragment().toString(),
+      );
     } else {
-      token = html.window.sessionStorage['em_token'] ?? '';
+      token = web.window.sessionStorage.getItem('em_token') ?? '';
     }
     if (token.isNotEmpty) {
       _loadAll();
@@ -147,7 +154,9 @@ class _AdminHomeState extends State<AdminHome> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('The admin panel uses OAuth 2.0 / OpenID Connect. Development logins and bypass endpoints are not available.'),
+          const Text(
+            'The admin panel uses only the configured OAuth 2.0 / OpenID Connect provider.',
+          ),
           const SizedBox(height: 12),
           Text('Backend: $apiBase'),
           const SizedBox(height: 16),
@@ -198,17 +207,23 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         _Panel(
           title: project?['name']?.toString() ?? 'No project selected',
-          child: Text(project == null ? 'Create or select a project on the Setup screen.' : 'Domain: ${project['domain']}'),
+          child: Text(
+            project == null
+                ? 'Create or select a project on the Setup screen.'
+                : 'Domain: ${project['domain']}',
+          ),
         ),
         const SizedBox(height: 16),
-        _MetricGrid(values: {
-          'Visits': '${overview['visits'] ?? 0}',
-          'Visitors': '${overview['visitors'] ?? 0}',
-          'Pageviews': '${overview['pageviews'] ?? 0}',
-          'Goals': '${overview['goals'] ?? 0}',
-          'Conversion': '${_round(overview['conversion_rate'])}%',
-          'Bounce rate': '${_round(overview['bounce_rate'])}%',
-        }),
+        _MetricGrid(
+          values: {
+            'Visits': '${overview['visits'] ?? 0}',
+            'Visitors': '${overview['visitors'] ?? 0}',
+            'Pageviews': '${overview['pageviews'] ?? 0}',
+            'Goals': '${overview['goals'] ?? 0}',
+            'Conversion': '${_round(overview['conversion_rate'])}%',
+            'Bounce rate': '${_round(overview['bounce_rate'])}%',
+          },
+        ),
       ],
     );
   }
@@ -219,21 +234,51 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         _Panel(
           title: 'Organization',
-          child: _FormWrap(children: [
-            _TextInput(label: 'Name', controller: orgNameController, keyName: 'org-name'),
-            FilledButton(key: const ValueKey('create-org'), onPressed: _createOrganization, child: const Text('Create organization')),
-            SelectableText('Current: ${selectedOrgId.isEmpty ? 'none' : selectedOrgId}', key: const ValueKey('current-org')),
-          ]),
+          child: _FormWrap(
+            children: [
+              _TextInput(
+                label: 'Name',
+                controller: orgNameController,
+                keyName: 'org-name',
+              ),
+              FilledButton(
+                key: const ValueKey('create-org'),
+                onPressed: _createOrganization,
+                child: const Text('Create organization'),
+              ),
+              SelectableText(
+                'Current: ${selectedOrgId.isEmpty ? 'none' : selectedOrgId}',
+                key: const ValueKey('current-org'),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         _Panel(
           title: 'Project',
-          child: _FormWrap(children: [
-            _TextInput(label: 'Name', controller: projectNameController, keyName: 'project-name'),
-            _TextInput(label: 'Domain', controller: projectDomainController, keyName: 'project-domain'),
-            FilledButton(key: const ValueKey('create-project'), onPressed: _createProject, child: const Text('Create project')),
-            SelectableText('Current: ${selectedProjectId.isEmpty ? 'none' : selectedProjectId}', key: const ValueKey('current-project')),
-          ]),
+          child: _FormWrap(
+            children: [
+              _TextInput(
+                label: 'Name',
+                controller: projectNameController,
+                keyName: 'project-name',
+              ),
+              _TextInput(
+                label: 'Domain',
+                controller: projectDomainController,
+                keyName: 'project-domain',
+              ),
+              FilledButton(
+                key: const ValueKey('create-project'),
+                onPressed: _createProject,
+                child: const Text('Create project'),
+              ),
+              SelectableText(
+                'Current: ${selectedProjectId.isEmpty ? 'none' : selectedProjectId}',
+                key: const ValueKey('current-project'),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         _Panel(
@@ -241,12 +286,25 @@ class _AdminHomeState extends State<AdminHome> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FilledButton(key: const ValueKey('create-counter'), onPressed: _createCounter, child: const Text('Create counter')),
+              FilledButton(
+                key: const ValueKey('create-counter'),
+                onPressed: _createCounter,
+                child: const Text('Create counter'),
+              ),
               const SizedBox(height: 12),
-              SelectableText('Counter id: ${counter?['id'] ?? ''}', key: const ValueKey('counter-id')),
-              SelectableText('Public key: ${counter?['public_key'] ?? ''}', key: const ValueKey('counter-public-key')),
+              SelectableText(
+                'Counter id: ${counter?['id'] ?? ''}',
+                key: const ValueKey('counter-id'),
+              ),
+              SelectableText(
+                'Public key: ${counter?['public_key'] ?? ''}',
+                key: const ValueKey('counter-public-key'),
+              ),
               const SizedBox(height: 12),
-              SelectableText(_snippet(counter?['public_key']?.toString() ?? ''), key: const ValueKey('snippet')),
+              SelectableText(
+                _snippet(counter?['public_key']?.toString() ?? ''),
+                key: const ValueKey('snippet'),
+              ),
             ],
           ),
         ),
@@ -259,20 +317,77 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         _Panel(
           title: 'Reports',
-          child: Wrap(spacing: 10, children: [
-            OutlinedButton.icon(key: const ValueKey('refresh'), onPressed: _loadAll, icon: const Icon(Icons.refresh), label: const Text('Refresh')),
-            OutlinedButton.icon(
-              onPressed: selectedProjectId.isEmpty ? null : () => html.window.open('$apiBase/api/v1/reports/export.csv?project_id=$selectedProjectId', '_blank'),
-              icon: const Icon(Icons.download),
-              label: const Text('CSV export'),
-            ),
-          ]),
+          child: Wrap(
+            spacing: 10,
+            children: [
+              OutlinedButton.icon(
+                key: const ValueKey('refresh'),
+                onPressed: _loadAll,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh'),
+              ),
+              OutlinedButton.icon(
+                onPressed: selectedProjectId.isEmpty
+                    ? null
+                    : () => web.window.open(
+                        '$apiBase/api/v1/reports/export.csv?project_id=$selectedProjectId',
+                        '_blank',
+                      ),
+                icon: const Icon(Icons.download),
+                label: const Text('CSV export'),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
-        _TablePanel(title: 'Sources', rows: _reportRows('sources', 'sources'), columns: const ['source', 'medium', 'campaign', 'visits', 'pageviews', 'goals']),
-        _TablePanel(title: 'Pages', rows: _reportRows('pages', 'pages'), columns: const ['url', 'views', 'unique_visitors', 'entrances', 'exits', 'goals']),
-        _TablePanel(title: 'Events', rows: _reportRows('events', 'events'), columns: const ['type', 'name', 'count', 'unique_users', 'sessions', 'goals_triggered']),
-        _TablePanel(title: 'Goals report', rows: _reportRows('goals', 'goals'), columns: const ['name', 'visits', 'completions', 'unique_users', 'conversion_rate', 'revenue']),
+        _TablePanel(
+          title: 'Sources',
+          rows: _reportRows('sources', 'sources'),
+          columns: const [
+            'source',
+            'medium',
+            'campaign',
+            'visits',
+            'pageviews',
+            'goals',
+          ],
+        ),
+        _TablePanel(
+          title: 'Pages',
+          rows: _reportRows('pages', 'pages'),
+          columns: const [
+            'url',
+            'views',
+            'unique_visitors',
+            'entrances',
+            'exits',
+            'goals',
+          ],
+        ),
+        _TablePanel(
+          title: 'Events',
+          rows: _reportRows('events', 'events'),
+          columns: const [
+            'type',
+            'name',
+            'count',
+            'unique_users',
+            'sessions',
+            'goals_triggered',
+          ],
+        ),
+        _TablePanel(
+          title: 'Goals report',
+          rows: _reportRows('goals', 'goals'),
+          columns: const [
+            'name',
+            'visits',
+            'completions',
+            'unique_users',
+            'conversion_rate',
+            'revenue',
+          ],
+        ),
       ],
     );
   }
@@ -281,7 +396,14 @@ class _AdminHomeState extends State<AdminHome> {
     return _TablePanel(
       title: 'Debug events',
       rows: debugEvents,
-      columns: const ['server_time', 'type', 'name', 'url', 'traffic_source', 'ip_hash'],
+      columns: const [
+        'server_time',
+        'type',
+        'name',
+        'url',
+        'traffic_source',
+        'ip_hash',
+      ],
       refresh: _loadProjectData,
     );
   }
@@ -291,13 +413,27 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         _Panel(
           title: 'Create goal',
-          child: _FormWrap(children: [
-            _TextInput(label: 'Name', controller: goalNameController, keyName: 'goal-name'),
-            FilledButton(key: const ValueKey('create-goal'), onPressed: _createGoal, child: const Text('Create goal')),
-          ]),
+          child: _FormWrap(
+            children: [
+              _TextInput(
+                label: 'Name',
+                controller: goalNameController,
+                keyName: 'goal-name',
+              ),
+              FilledButton(
+                key: const ValueKey('create-goal'),
+                onPressed: _createGoal,
+                child: const Text('Create goal'),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
-        _TablePanel(title: 'Goals', rows: goals, columns: const ['name', 'type', 'enabled', 'value', 'currency']),
+        _TablePanel(
+          title: 'Goals',
+          rows: goals,
+          columns: const ['name', 'type', 'enabled', 'value', 'currency'],
+        ),
       ],
     );
   }
@@ -307,10 +443,24 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         _Panel(
           title: 'API tokens and audit',
-          child: FilledButton(key: const ValueKey('create-api-token'), onPressed: _createApiToken, child: const Text('Create API token')),
+          child: FilledButton(
+            key: const ValueKey('create-api-token'),
+            onPressed: _createApiToken,
+            child: const Text('Create API token'),
+          ),
         ),
         const SizedBox(height: 16),
-        _TablePanel(title: 'Audit log', rows: auditLog, columns: const ['created_at', 'actor_user_id', 'action', 'entity_type', 'entity_id']),
+        _TablePanel(
+          title: 'Audit log',
+          rows: auditLog,
+          columns: const [
+            'created_at',
+            'actor_user_id',
+            'action',
+            'entity_type',
+            'entity_id',
+          ],
+        ),
       ],
     );
   }
@@ -318,18 +468,20 @@ class _AdminHomeState extends State<AdminHome> {
   Future<void> _oauthLogin() async {
     apiBase = apiBaseController.text.trim();
     _savePrefs();
-    final login = Uri.parse('$apiBase/auth/login').replace(queryParameters: {
-      'redirect_to': Uri.base.removeFragment().toString(),
-      'token_redirect': '1',
-    });
-    html.window.location.assign(login.toString());
+    final login = Uri.parse('$apiBase/auth/login').replace(
+      queryParameters: {
+        'redirect_to': Uri.base.removeFragment().toString(),
+        'token_redirect': '1',
+      },
+    );
+    web.window.location.assign(login.toString());
   }
 
   Future<void> _logout() async {
     try {
       await _post('/api/v1/logout', {});
     } catch (_) {}
-    html.window.sessionStorage.remove('em_token');
+    web.window.sessionStorage.removeItem('em_token');
     setState(() {
       token = '';
       user = null;
@@ -346,7 +498,9 @@ class _AdminHomeState extends State<AdminHome> {
 
   Future<void> _createOrganization() async {
     await _withLoading(() async {
-      final org = await _post('/api/v1/organizations', {'name': orgNameController.text.trim()});
+      final org = await _post('/api/v1/organizations', {
+        'name': orgNameController.text.trim(),
+      });
       selectedOrgId = org['organization']['id'];
       await _loadAll(setLoading: false);
     });
@@ -368,7 +522,10 @@ class _AdminHomeState extends State<AdminHome> {
 
   Future<void> _createCounter() async {
     await _withLoading(() async {
-      final counter = await _post('/api/v1/projects/$selectedProjectId/counters', {'name': 'Main counter'});
+      final counter = await _post(
+        '/api/v1/projects/$selectedProjectId/counters',
+        {'name': 'Main counter'},
+      );
       selectedCounterId = counter['counter']['id'];
       await _loadAll(setLoading: false);
     });
@@ -376,14 +533,21 @@ class _AdminHomeState extends State<AdminHome> {
 
   Future<void> _createGoal() async {
     await _withLoading(() async {
-      await _post('/api/v1/projects/$selectedProjectId/goals', {'name': goalNameController.text.trim(), 'type': 'js_goal', 'conditions': {}});
+      await _post('/api/v1/projects/$selectedProjectId/goals', {
+        'name': goalNameController.text.trim(),
+        'type': 'js_goal',
+        'conditions': {},
+      });
       await _loadAll(setLoading: false);
     });
   }
 
   Future<void> _createApiToken() async {
     await _withLoading(() async {
-      final body = await _post('/api/v1/api-tokens?project_id=$selectedProjectId', {'name': 'Admin token'});
+      final body = await _post(
+        '/api/v1/api-tokens?project_id=$selectedProjectId',
+        {'name': 'Admin token'},
+      );
       status = 'API token: ${body['token']}';
     });
   }
@@ -432,7 +596,12 @@ class _AdminHomeState extends State<AdminHome> {
       goals = responses[1]['goals'] ?? [];
       overview = responses[2];
       debugEvents = responses[3]['events'] ?? [];
-      reports = {'sources': responses[4], 'pages': responses[5], 'events': responses[6], 'goals': responses[7]};
+      reports = {
+        'sources': responses[4],
+        'pages': responses[5],
+        'events': responses[6],
+        'goals': responses[7],
+      };
       auditLog = responses[8]['audit_log'] ?? [];
       if (!counters.any((counter) => counter['id'] == selectedCounterId)) {
         selectedCounterId = counters.isEmpty ? '' : counters.first['id'];
@@ -448,16 +617,23 @@ class _AdminHomeState extends State<AdminHome> {
 
   Future<Map<String, dynamic>> _get(String path) => _request('GET', path);
 
-  Future<Map<String, dynamic>> _post(String path, Object body) => _request('POST', path, body: body);
+  Future<Map<String, dynamic>> _post(String path, Object body) =>
+      _request('POST', path, body: body);
 
-  Future<Map<String, dynamic>> _request(String method, String path, {Object? body}) async {
+  Future<Map<String, dynamic>> _request(
+    String method,
+    String path, {
+    Object? body,
+  }) async {
     final uri = Uri.parse('${apiBase.replaceFirst(RegExp(r'/$'), '')}$path');
     final headers = {'Content-Type': 'application/json'};
     if (token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
     final response = method == 'POST'
         ? await http.post(uri, headers: headers, body: jsonEncode(body ?? {}))
         : await http.get(uri, headers: headers);
-    final decoded = response.body.isEmpty ? <String, dynamic>{} : jsonDecode(response.body) as Map<String, dynamic>;
+    final decoded = response.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(decoded['message'] ?? 'HTTP ${response.statusCode}');
     }
@@ -479,30 +655,39 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   void _savePrefs() {
-    html.window.localStorage['em_api_base'] = apiBase;
-    html.window.localStorage['em_tab'] = selectedTab;
-    if (selectedOrgId.isNotEmpty) html.window.localStorage['em_org_id'] = selectedOrgId;
-    if (selectedProjectId.isNotEmpty) html.window.localStorage['em_project_id'] = selectedProjectId;
-    if (selectedCounterId.isNotEmpty) html.window.localStorage['em_counter_id'] = selectedCounterId;
+    web.window.localStorage.setItem('em_api_base', apiBase);
+    web.window.localStorage.setItem('em_tab', selectedTab);
+    if (selectedOrgId.isNotEmpty)
+      web.window.localStorage.setItem('em_org_id', selectedOrgId);
+    if (selectedProjectId.isNotEmpty)
+      web.window.localStorage.setItem('em_project_id', selectedProjectId);
+    if (selectedCounterId.isNotEmpty)
+      web.window.localStorage.setItem('em_counter_id', selectedCounterId);
   }
 
   Map<String, dynamic>? _selectedProject() {
     for (final project in projects) {
-      if (project is Map<String, dynamic> && project['id'] == selectedProjectId) return project;
+      if (project is Map<String, dynamic> && project['id'] == selectedProjectId)
+        return project;
     }
     return null;
   }
 
   Map<String, dynamic>? _selectedCounter() {
     for (final counter in counters) {
-      if (counter is Map<String, dynamic> && counter['id'] == selectedCounterId) return counter;
+      if (counter is Map<String, dynamic> && counter['id'] == selectedCounterId)
+        return counter;
     }
-    return counters.isNotEmpty && counters.first is Map<String, dynamic> ? counters.first as Map<String, dynamic> : null;
+    return counters.isNotEmpty && counters.first is Map<String, dynamic>
+        ? counters.first as Map<String, dynamic>
+        : null;
   }
 
   List<dynamic> _reportRows(String reportKey, String rowKey) {
     final report = reports[reportKey];
-    return report is Map<String, dynamic> && report[rowKey] is List ? report[rowKey] as List<dynamic> : [];
+    return report is Map<String, dynamic> && report[rowKey] is List
+        ? report[rowKey] as List<dynamic>
+        : [];
   }
 
   String _snippet(String publicKey) {
@@ -512,7 +697,9 @@ class _AdminHomeState extends State<AdminHome> {
 
   String _tokenFromFragment(String fragment) {
     if (fragment.isEmpty) return '';
-    final params = Uri.splitQueryString(fragment.startsWith('?') ? fragment.substring(1) : fragment);
+    final params = Uri.splitQueryString(
+      fragment.startsWith('?') ? fragment.substring(1) : fragment,
+    );
     return params['session_token'] ?? '';
   }
 
@@ -523,7 +710,11 @@ class _AdminHomeState extends State<AdminHome> {
 }
 
 class _Sidebar extends StatelessWidget {
-  const _Sidebar({required this.selectedTab, required this.userEmail, required this.onTab});
+  const _Sidebar({
+    required this.selectedTab,
+    required this.userEmail,
+    required this.onTab,
+  });
 
   final String selectedTab;
   final String userEmail;
@@ -546,7 +737,14 @@ class _Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('EndlessMetrics', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+          const Text(
+            'EndlessMetrics',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 18),
           Text(userEmail, style: const TextStyle(color: Colors.white)),
           const SizedBox(height: 20),
@@ -560,8 +758,13 @@ class _Sidebar extends StatelessWidget {
                   style: TextButton.styleFrom(
                     alignment: Alignment.centerLeft,
                     foregroundColor: Colors.white,
-                    backgroundColor: selectedTab == entry.key ? const Color(0xff273345) : Colors.transparent,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    backgroundColor: selectedTab == entry.key
+                        ? const Color(0xff273345)
+                        : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
+                    ),
                   ),
                   onPressed: () => onTab(entry.key),
                   child: Text(entry.value),
@@ -595,7 +798,9 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xffd8dee8)))),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xffd8dee8))),
+      ),
       child: Column(
         children: [
           Row(
@@ -604,16 +809,28 @@ class _TopBar extends StatelessWidget {
                 child: TextField(
                   key: const ValueKey('api-base'),
                   controller: apiBaseController,
-                  decoration: const InputDecoration(labelText: 'API base', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                    labelText: 'API base',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
-              OutlinedButton(onPressed: onSaveApi, child: const Text('Save API')),
+              OutlinedButton(
+                onPressed: onSaveApi,
+                child: const Text('Save API'),
+              ),
               const SizedBox(width: 10),
-              FilledButton(onPressed: onOAuthLogin, child: const Text('OAuth login')),
+              FilledButton(
+                onPressed: onOAuthLogin,
+                child: const Text('OAuth login'),
+              ),
               if (onLogout != null) ...[
                 const SizedBox(width: 10),
-                OutlinedButton(onPressed: onLogout, child: const Text('Logout')),
+                OutlinedButton(
+                  onPressed: onLogout,
+                  child: const Text('Logout'),
+                ),
               ],
             ],
           ),
@@ -621,7 +838,12 @@ class _TopBar extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                if (loading) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+                if (loading)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 if (loading) const SizedBox(width: 8),
                 Expanded(child: Text(status, key: const ValueKey('status'))),
               ],
@@ -649,11 +871,14 @@ class _Panel extends StatelessWidget {
         border: Border.all(color: const Color(0xffd8dee8)),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        child,
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -673,12 +898,25 @@ class _MetricGrid extends StatelessWidget {
           Container(
             width: 180,
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xffe1e7ef)), borderRadius: BorderRadius.circular(8)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(entry.key),
-              const SizedBox(height: 8),
-              Text(entry.value, key: ValueKey('metric-${entry.key.toLowerCase().replaceAll(' ', '-')}'), style: Theme.of(context).textTheme.headlineMedium),
-            ]),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xffe1e7ef)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(entry.key),
+                const SizedBox(height: 8),
+                Text(
+                  entry.value,
+                  key: ValueKey(
+                    'metric-${entry.key.toLowerCase().replaceAll(' ', '-')}',
+                  ),
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -690,11 +928,20 @@ class _FormWrap extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Wrap(spacing: 10, runSpacing: 10, crossAxisAlignment: WrapCrossAlignment.center, children: children);
+  Widget build(BuildContext context) => Wrap(
+    spacing: 10,
+    runSpacing: 10,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    children: children,
+  );
 }
 
 class _TextInput extends StatelessWidget {
-  const _TextInput({required this.label, required this.controller, required this.keyName});
+  const _TextInput({
+    required this.label,
+    required this.controller,
+    required this.keyName,
+  });
   final String label;
   final TextEditingController controller;
   final String keyName;
@@ -703,13 +950,25 @@ class _TextInput extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 260,
-      child: TextField(key: ValueKey(keyName), controller: controller, decoration: InputDecoration(labelText: label, border: const OutlineInputBorder())),
+      child: TextField(
+        key: ValueKey(keyName),
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+      ),
     );
   }
 }
 
 class _TablePanel extends StatelessWidget {
-  const _TablePanel({required this.title, required this.rows, required this.columns, this.refresh});
+  const _TablePanel({
+    required this.title,
+    required this.rows,
+    required this.columns,
+    this.refresh,
+  });
 
   final String title;
   final List<dynamic> rows;
@@ -726,16 +985,30 @@ class _TablePanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (refresh != null)
-              OutlinedButton.icon(key: const ValueKey('refresh'), onPressed: refresh, icon: const Icon(Icons.refresh), label: const Text('Refresh')),
+              OutlinedButton.icon(
+                key: const ValueKey('refresh'),
+                onPressed: refresh,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh'),
+              ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                columns: [for (final column in columns) DataColumn(label: Text(column))],
+                columns: [
+                  for (final column in columns) DataColumn(label: Text(column)),
+                ],
                 rows: [
                   for (final row in rows)
-                    DataRow(cells: [
-                      for (final column in columns) DataCell(SelectableText(row is Map ? '${row[column] ?? ''}' : '')),
-                    ]),
+                    DataRow(
+                      cells: [
+                        for (final column in columns)
+                          DataCell(
+                            SelectableText(
+                              row is Map ? '${row[column] ?? ''}' : '',
+                            ),
+                          ),
+                      ],
+                    ),
                 ],
               ),
             ),

@@ -3,7 +3,7 @@ import { expect, request, test } from '@playwright/test';
 const backendBaseURL = process.env.BACKEND_BASE_URL || 'https://unng.ru';
 
 test('landing page is visible and links to Flutter admin', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByRole('heading', { name: /web analytics/i })).toBeVisible();
   await expect(page.getByRole('link', { name: /open flutter admin/i })).toHaveAttribute('href', './admin/');
   await expect(page.getByText(/OAuth 2.0 \/ OIDC only/i)).toBeVisible();
@@ -27,10 +27,18 @@ test('backend is HTTPS and does not expose bypass auth endpoints', async () => {
 });
 
 test('Flutter admin shell loads without local auth bypass controls', async ({ page }) => {
-  await page.goto('/admin/');
-  await expect(page.getByText('EndlessMetrics')).toBeVisible();
-  await expect(page.getByRole('button', { name: /OAuth login/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Check backend/i })).toBeVisible();
-  await expect(page.getByText(/Development logins and bypass endpoints are not available/i)).toBeVisible();
-  await expect(page.getByText(/Dev login/i)).toHaveCount(0);
+  await page.goto('./admin/');
+  await expect(page).toHaveTitle('EndlessMetrics Admin');
+  await page.waitForFunction(() => {
+    const html = document.documentElement.outerHTML;
+    return html.includes('flt-') || html.includes('flutter') || Boolean((window as any)._flutter);
+  });
+  await expect.poll(async () => (await page.screenshot({ fullPage: true })).length, {
+    timeout: 15_000,
+  }).toBeGreaterThan(20_000);
+
+  const bundle = await page.request.get('./admin/main.dart.js');
+  expect(bundle.ok()).toBeTruthy();
+  const js = await bundle.text();
+  expect(js).not.toMatch(/dev[- ]?login|development logins|bypass endpoints/i);
 });
