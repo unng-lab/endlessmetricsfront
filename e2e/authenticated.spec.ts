@@ -1,6 +1,6 @@
 import { expect, request, test } from '@playwright/test';
 
-const backendBaseURL = process.env.BACKEND_BASE_URL || 'https://unng.ru';
+const backendBaseURL = process.env.BACKEND_BASE_URL || 'http://unng.ru:7074';
 const sessionToken = process.env.E2E_SESSION_TOKEN || '';
 const secondSessionToken = process.env.E2E_SECOND_SESSION_TOKEN || '';
 

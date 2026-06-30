@@ -33,7 +33,7 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  static const defaultApiBase = 'https://unng.ru';
+  static const defaultApiBase = 'http://unng.ru:7074';
 
   final apiBaseController = TextEditingController();
   final orgNameController = TextEditingController(text: 'New organization');
