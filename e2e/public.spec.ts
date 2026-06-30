@@ -15,6 +15,10 @@ test('backend is HTTPS and does not expose bypass auth endpoints', async () => {
   expect(health.ok()).toBeTruthy();
   await expect(health.json()).resolves.toMatchObject({ status: 'ok', service: 'endlessmetrics' });
 
+  const root = await api.get('/', { maxRedirects: 0 });
+  expect(root.status()).toBe(302);
+  expect(root.headers()['location']).toBe('https://unng-lab.github.io/endlessmetricsfront/');
+
   const hiddenLogin = await api.post('/api/v1/auth/dev-login', { data: { email: 'x@example.com' } });
   expect(hiddenLogin.status()).toBe(404);
 
