@@ -21,7 +21,7 @@ test('backend is reachable and does not expose bypass auth endpoints', async () 
   const reset = await api.post('/api/v1/test/reset');
   expect(reset.status()).toBe(404);
 
-  const oauth = await api.get('/auth/login?redirect_to=https%3A%2F%2Funng-lab.github.io%2Fendlessmetricsfront%2Fadmin%2F&token_redirect=1');
+  const oauth = await api.get('/auth/login?redirect_to=https%3A%2F%2Funng-lab.github.io%2Fendlessmetricsfront%2Fadmin%2F&token_redirect=1', { maxRedirects: 0 });
   expect([302, 503]).toContain(oauth.status());
   await api.dispose();
 });
