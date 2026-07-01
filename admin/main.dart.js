@@ -7194,7 +7194,7 @@ _.e=b
 _.f=c
 _.r=d
 _.w=e
-_.x="http://unng.ru:7074"
+_.x="https://metrics.unng.ru"
 _.y=""
 _.z="dashboard"
 _.ax=_.at=_.as=_.Q=""
@@ -37805,7 +37805,7 @@ p.aS()
 s=A.Ke()
 r=s.gT4().h(0,"api")
 if(r==null)r=v.G.window.localStorage.getItem("em_api_base")
-if(r==null)r="http://unng.ru:7074"
+if(r==null)r="https://metrics.unng.ru"
 p.x=r
 q=p.d
 q.nR(q.a.r7(B.av,B.bY,r))

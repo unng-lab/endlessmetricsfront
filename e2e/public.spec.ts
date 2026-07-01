@@ -1,6 +1,6 @@
 import { expect, request, test } from '@playwright/test';
 
-const backendBaseURL = process.env.BACKEND_BASE_URL || 'http://unng.ru:7074';
+const backendBaseURL = process.env.BACKEND_BASE_URL || 'https://metrics.unng.ru';
 
 test('landing page is visible and links to Flutter admin', async ({ page }) => {
   await page.goto('./');
